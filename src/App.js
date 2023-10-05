@@ -1,6 +1,8 @@
 import React from 'react'
 import { Route, Routes } from "react-router-dom";
 
+import {db} from './firebase'
+
 import Home from './components/Home'
 import Votar from './components/Votar'
 import Admin from './components/Admin'
