@@ -15,7 +15,7 @@ function App() {
 
   return (
       <div className={style.bg}>
-        <h1 className='text-center text-3xl font-bold'>Votação de Funcionários</h1>
+        <h1 className='text-center text-3xl font-bold p-4'>Votação de Funcionários</h1>
         <Routes>
           <Route path='/' element={<Home />} />
           <Route path='/Votar' element={<Votar />} />
