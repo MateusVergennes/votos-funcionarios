@@ -15,22 +15,22 @@ const style ={
   down: `absolute bottom-4 left-1/2 transform -translate-x-1/2`
 }
 
-const Home = () => {
+const Home = ({ readData, setFetchCPFsOnButtonClicked  }) => {
   const [input, setInput] = useState('')
   const [isButtonDisable, setIsButtonDisable] = useState(false)
 
   const navigate = useNavigate()
 
   const handleSubmit = (page) => {
-    if (input === '01234567891'){
-      navigate(`/${page}`)
+    setFetchCPFsOnButtonClicked(true);
+    const cpfEncontrado = readData(input)
+    
+    if (cpfEncontrado){
+      toast.success('CPF Valido', { closeButton: false, onClose: () => { navigate(`/${page}`) } }) 
     }else{
-      //alert('cpf nao valido')
-      toast.error('CPF não válido', {
-        closeButton: false, // Impede a exibição do ícone de fechar
-      });
+      toast.error('CPF não válido', { closeButton: false })// Impede a exibição do ícone de fechar
     }
-}
+  }
 
   const checkCpf = (e) => {
     const inputValue = e.target.value;
@@ -41,7 +41,7 @@ const Home = () => {
 
   return (
     <div className={style.container}>
-      <ToastContainer position="top-center" autoClose={3000} hideProgressBar={false} />
+      <ToastContainer position="top-center" autoClose={1000} hideProgressBar={false} />
       <form className={style.form}>
         <input className={style.input} type="text" placeholder='Insira seu CPF' onChange={checkCpf} value={input}/>
         <button 
