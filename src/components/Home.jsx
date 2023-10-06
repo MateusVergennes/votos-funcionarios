@@ -25,11 +25,10 @@ const Home = ({ readData, setFetchCPFsOnButtonClicked  }) => {
     setFetchCPFsOnButtonClicked(true);
     const cpfEncontrado = readData(input)
     
-    if (cpfEncontrado){
-      toast.success('CPF Valido', { closeButton: false, onClose: () => { navigate(`/${page}`) } }) 
-    }else{
-      toast.error('CPF não válido', { closeButton: false })// Impede a exibição do ícone de fechar
-    }
+  cpfEncontrado
+    ? toast.success('CPF Valido', { closeButton: false, onClose: () => { navigate(`/${page}`) } })
+    : toast.error('CPF não válido', { closeButton: false });
+
   }
 
   const checkCpf = (e) => {
