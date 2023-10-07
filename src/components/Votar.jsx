@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react'
+import {useNavigate} from 'react-router-dom'
 
 import { ToastContainer, toast } from 'react-toastify';
 
-import {query, collection, onSnapshot} from 'firebase/firestore'
+import {query, collection, onSnapshot, addDoc} from 'firebase/firestore'
 import {db} from '../firebase'
 
 const style ={
@@ -10,19 +11,26 @@ const style ={
   form: `flex flex-col h-full justify-between`,
   botao: `bg-blue-500 text-white font-semibold py-2 rounded-md mt-4`,
   questao:`text-xl font-bold mb-2`,
-  option: 'mb-2',
+  option: `mb-2`,
+  buscaIndice: `text-center text-red-500 font-semibold text-lg mt-4`,
 }
 
-const Votar = ({cpfs, fetchCPFs}) => {
+let indiceOculto = -1
+
+const Votar = ({idUser, cpfs, fetchCPFs}) => {
   const [indexQuestaoAtual, setIndexQuestaoAtual] = useState(0)
   const [opcaoSelecionada, setOpcaoSelecionada] = useState([])
   const [funcionarios, setFuncionarios] = useState([])
+  const [idFuncionarios, setIdFuncionarios] = useState([])
   const [questoes, setQuestoes] = useState([])
+  const [idQuestoes, setIdQuestoes] = useState([])
   const numeroDeQuestoes = questoes.length
+  const navigate = useNavigate()
+
 
   const handleOptionSelect = (selectedOption) => {
     const novasOpcoesSelecionadas = [...opcaoSelecionada];
-    novasOpcoesSelecionadas[indexQuestaoAtual] = selectedOption;
+    novasOpcoesSelecionadas[indexQuestaoAtual] = idFuncionarios[selectedOption];
     setOpcaoSelecionada(novasOpcoesSelecionadas);
   }
 
@@ -40,6 +48,7 @@ const Votar = ({cpfs, fetchCPFs}) => {
   }
 
   useEffect(() => {
+    
     const qQuestoes = query(collection(db, 'questoes'))
     const unsubscribe = onSnapshot(qQuestoes, (querySnapshot) => {
       let qQuestoesArr = []
@@ -47,29 +56,52 @@ const Votar = ({cpfs, fetchCPFs}) => {
         qQuestoesArr.push({...doc.data(), id: doc.id})
       })
       setQuestoes(qQuestoesArr)
-    })
+    })    
     return () => unsubscribe()
   }, [])
+  
+  useEffect(() => {
+    //para o usuario nao votar nele mesmo
+    indiceOculto = idFuncionarios.indexOf(idUser)
+  }, [idUser, idFuncionarios])
 
   useEffect(() => {
     if (funcionarios.length === 0) {//para carregar a lista de funcionarios que sao as alternativas de votacao
       const capturaNomes = async () => {
         await fetchCPFs()
         setFuncionarios([...cpfs.map(cpf => cpf.nome)])
+        setIdFuncionarios([...cpfs.map(cpf => cpf.id)])
     }
     capturaNomes()
   }
 
   }, [cpfs]);
 
+  const handleSendFormToBd = async () => {
+    const idQuestoesAtualizado = [...questoes.map(questao => questao.id)]
+    
+    toast.info('Carregando Votos...', { closeButton: false })
+
+    await setIdQuestoes(idQuestoesAtualizado)
+
+    await addDoc(collection(db, 'votos'), {
+      idQuestao: idQuestoesAtualizado,
+      idCpfVotado: opcaoSelecionada,
+      idCpfVotante: idUser
+    })
+    toast.success('Votacao Realizada', { closeButton: false, onClose: () => {navigate('/')}} );
+  }
+
   return (
     <div className={style.container}>
       <ToastContainer position="top-center" autoClose={1000} hideProgressBar={false} />
       <form className={style.form}>
-        {indexQuestaoAtual < numeroDeQuestoes ? (
+      {indiceOculto > -1 ? (
+        indexQuestaoAtual < numeroDeQuestoes ? (
           <div>
             <p className={style.questao}>{questoes.length > 0 && questoes[indexQuestaoAtual] && questoes[indexQuestaoAtual].questao}</p>
             {funcionarios.map((funcionario, index) => (
+              index !== indiceOculto && (
               <div key={index} className={style.option}>
                 <input
                   type="radio"
@@ -79,14 +111,18 @@ const Votar = ({cpfs, fetchCPFs}) => {
                 />
                 <label>{funcionario}</label>
               </div>
+              )
             ))}
             <button type='button' className={style.botao} onClick={handleNextQuestion}> Próxima </button>
           </div>
         ) : ( 
           <>
             <p className={style.question}>Formulário concluído!</p>
-            <button type="button" className={style.botao}>Concluir</button>
+            <button type="button" className={style.botao} onClick={handleSendFormToBd}>Concluir</button>
           </>
+        )
+        ) : (
+          <p className={style.buscaIndice}>...Buscando Opções de Voto...</p>
         )}
       </form>
     </div>

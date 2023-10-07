@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react'
 import { Route, Routes } from "react-router-dom";
 
-import {query, collection, onSnapshot} from 'firebase/firestore'
+import {query, collection, onSnapshot, where, getDocs,} from 'firebase/firestore'
 import {db} from './firebase'
 
 import Home from './components/Home'
@@ -17,6 +17,7 @@ const style = {
 function App() {
   const [cpfs, setCpfs] = useState([])
   const [fetchCPFsOnButtonClicked, setFetchCPFsOnButtonClicked] = useState(false);
+  const [idUser, setIdUser] = useState(0)
 
   //Read cpf from firebase
   const fetchCPFs = ()=> {
@@ -38,11 +39,20 @@ function App() {
     }
   }, [fetchCPFsOnButtonClicked]);
 
-  const readData = (cpf) => {
-    const cpfsArray = cpfs.map((item) => item.cpf);
-    
-    //para checar se o cpf do formulario de home inserido pelo usuario esta no banco de dados
-    return cpfsArray.includes(cpf)
+  async function readData(cpf) {
+    const usuariosRef  = (collection(db, 'cpfs'))
+    const q = query(usuariosRef, where('cpf', '==', cpf));
+    const querySnapshot = await getDocs(q);
+  
+    if (!querySnapshot.empty) {
+      // CPF encontrado no banco de dados
+      const doc = querySnapshot.docs[0]; // Pega o primeiro documento correspondente
+      setIdUser(doc.id)
+      return true;
+    } else {
+      // CPF não encontrado no banco de dados
+      return false;
+    }
   }
 
   return (
@@ -50,7 +60,7 @@ function App() {
         <h1 className='text-center text-3xl font-bold p-4'>Votação de Funcionários</h1>
         <Routes>
           <Route path='/' element={<Home readData = {readData} setFetchCPFsOnButtonClicked={setFetchCPFsOnButtonClicked} />} />
-          <Route path='/Votar' element={<Votar cpfs={cpfs} fetchCPFs={fetchCPFs} />} />
+          <Route path='/Votar' element={<Votar idUser={idUser} cpfs={cpfs} fetchCPFs={fetchCPFs} />} />
           <Route path='/Resultados' element={<Resultados />} />
           <Route path='/Admin' element={<Admin />} />
         </Routes>
