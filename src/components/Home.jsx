@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React, {useEffect, useState} from 'react'
 import {useNavigate} from 'react-router-dom'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -21,21 +21,19 @@ const Home = ({ readData, setFetchCPFsOnButtonClicked  }) => {
 
   const navigate = useNavigate()
 
-  const handleSubmit = (page) => {
+  const handleSubmit = async (page) => {
     setFetchCPFsOnButtonClicked(true);
-    const cpfEncontrado = readData(input)
-    
-  cpfEncontrado
-    ? toast.success('CPF Valido', { closeButton: false, onClose: () => { navigate(`/${page}`) } })
+    toast.info('Buscando...', { closeButton: false })
+    const cpfEncontrado = await readData(input)
+    cpfEncontrado
+    ? toast.success('CPF Valido', { closeButton: false , onClose: () => { navigate(`/${page}`) }})
     : toast.error('CPF não válido', { closeButton: false });
-
   }
-
+  
   const checkCpf = (e) => {
     const inputValue = e.target.value;
     setInput(inputValue)
     setIsButtonDisable(inputValue.length > 10)//verifica se o input esta vazio, se for vazio dara o valor de true
-    //setInput('')
   }
 
   return (
