@@ -1,9 +1,9 @@
 import React from 'react'
 
-const resultados = () => {
+const Resultados = () => {
   return (
-    <div>resultados</div>
+    <div>Resultados das Votações de Funcionário do Mês</div>
   )
 }
 
-export default resultados
+export default Resultados

@@ -3,7 +3,7 @@ import {useNavigate} from 'react-router-dom'
 
 import { ToastContainer, toast } from 'react-toastify';
 
-import {query, collection, onSnapshot, addDoc} from 'firebase/firestore'
+import {query, collection, onSnapshot, addDoc, updateDoc, doc, getDoc} from 'firebase/firestore'
 import {db} from '../firebase'
 
 const style ={
@@ -17,16 +17,16 @@ const style ={
 
 let indiceOculto = -1
 
-const Votar = ({idUser, cpfs, fetchCPFs}) => {
+const Votar = ({idUser, cpfs, fetchCPFs, stsVotacao, votacaoAberta}) => {
   const [indexQuestaoAtual, setIndexQuestaoAtual] = useState(0)
   const [opcaoSelecionada, setOpcaoSelecionada] = useState([])
   const [funcionarios, setFuncionarios] = useState([])
   const [idFuncionarios, setIdFuncionarios] = useState([])
   const [questoes, setQuestoes] = useState([])
   const [idQuestoes, setIdQuestoes] = useState([])
+  const [consultaCpfVotado, setConsultaCpfVotado] = useState([])
   const numeroDeQuestoes = questoes.length
   const navigate = useNavigate()
-
 
   const handleOptionSelect = (selectedOption) => {
     const novasOpcoesSelecionadas = [...opcaoSelecionada];
@@ -43,12 +43,31 @@ const Votar = ({idUser, cpfs, fetchCPFs}) => {
         radio.checked = false;
       });
     }else {
-      toast.error('Escolha uma Opcao', { closeButton: false });
+      toast.error('Escolha uma Opcao', { closeButton: false })
     }
   }
 
-  useEffect(() => {
-    
+  useEffect(() => { 
+
+    let cpfId = idUser;
+    if (cpfId) {
+      // Se cpfId estiver definido, realize a consulta.
+      const cpfDocRef = doc(db, 'cpfs', cpfId);
+      getDoc(cpfDocRef)
+        .then((docSnapshot) => {
+          if (docSnapshot.exists()) {
+            const data = docSnapshot.data();
+            const votado = data.votado;
+            setConsultaCpfVotado(votado)
+          }
+        })
+        .catch((error) => {
+          toast.error('Erro na consulta ao banco de dados de votante', { closeButton: false })
+        });
+    } else {
+      toast.error('Cpf de Votante nao Inserido', { closeButton: false })
+    }
+
     const qQuestoes = query(collection(db, 'questoes'))
     const unsubscribe = onSnapshot(qQuestoes, (querySnapshot) => {
       let qQuestoesArr = []
@@ -77,6 +96,12 @@ const Votar = ({idUser, cpfs, fetchCPFs}) => {
 
   }, [cpfs]);
 
+  const objetoStsVotacao = stsVotacao.reduce((resultado, objeto) => {
+    return { ...resultado, ...objeto };
+  }, {});
+  const votacaoLiberada = votacaoAberta
+  
+
   const handleSendFormToBd = async () => {
     const idQuestoesAtualizado = [...questoes.map(questao => questao.id)]
     
@@ -87,8 +112,14 @@ const Votar = ({idUser, cpfs, fetchCPFs}) => {
     await addDoc(collection(db, 'votos'), {
       idQuestao: idQuestoesAtualizado,
       idCpfVotado: opcaoSelecionada,
-      idCpfVotante: idUser
+      idCpfVotante: idUser,
+      numVotacao: objetoStsVotacao.numVotacao
     })
+
+    await updateDoc(doc(db, 'cpfs', idUser), {
+      votado: true
+    })
+
     toast.success('Votacao Realizada', { closeButton: false, onClose: () => {navigate('/')}} );
   }
 
@@ -96,7 +127,7 @@ const Votar = ({idUser, cpfs, fetchCPFs}) => {
     <div className={style.container}>
       <ToastContainer position="top-center" autoClose={1000} hideProgressBar={false} />
       <form className={style.form}>
-      {indiceOculto > -1 ? (
+      {indiceOculto > -1 && votacaoLiberada && !consultaCpfVotado ? (
         indexQuestaoAtual < numeroDeQuestoes ? (
           <div>
             <p className={style.questao}>{questoes.length > 0 && questoes[indexQuestaoAtual] && questoes[indexQuestaoAtual].questao}</p>
@@ -122,7 +153,7 @@ const Votar = ({idUser, cpfs, fetchCPFs}) => {
           </>
         )
         ) : (
-          <p className={style.buscaIndice}>...Buscando Opções de Voto...</p>
+          <p className={style.buscaIndice}>...Buscando Opções de Voto ou Votacao Fechada ou Você já Votou...</p>
         )}
       </form>
     </div>
