@@ -18,8 +18,25 @@ function App() {
   const [cpfs, setCpfs] = useState([])
   const [fetchCPFsOnButtonClicked, setFetchCPFsOnButtonClicked] = useState(false);
   const [idUser, setIdUser] = useState(0)
+  const [stsVotacao, setStsVotacao] = useState([])
+  const [votacaoAberta, setVotacaoAberta] = useState(false)
 
   //Read cpf from firebase
+  useEffect (() => {
+    const q = query(collection(db, 'admin'))
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      let stsVotacaoArr = []
+      querySnapshot.forEach((doc) => {
+        stsVotacaoArr.push({...doc.data(), id: doc.id})
+      })
+      setStsVotacao(stsVotacaoArr)
+      
+      const votacaoAbertaBool = stsVotacaoArr.some((item) => item.votacaoAberta)
+      setVotacaoAberta(votacaoAbertaBool)
+    })
+    return () => unsubscribe()
+  }, [])
+  
   const fetchCPFs = ()=> {
     const q = query(collection(db, 'cpfs'))
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
@@ -48,10 +65,12 @@ function App() {
       // CPF encontrado no banco de dados
       const doc = querySnapshot.docs[0]; // Pega o primeiro documento correspondente
       setIdUser(doc.id)
-      return true;
+
+      const votado = doc.data().votado 
+      return { encontrado: true, votado: votado }
     } else {
       // CPF não encontrado no banco de dados
-      return false;
+      return { encontrado: false, votado: false }
     }
   }
 
@@ -59,8 +78,8 @@ function App() {
       <div className={style.bg}>
         <h1 className='text-center text-3xl font-bold p-4'>Votação de Funcionários</h1>
         <Routes>
-          <Route path='/' element={<Home readData = {readData} setFetchCPFsOnButtonClicked={setFetchCPFsOnButtonClicked} />} />
-          <Route path='/Votar' element={<Votar idUser={idUser} cpfs={cpfs} fetchCPFs={fetchCPFs} />} />
+          <Route path='/' element={<Home readData = {readData} setFetchCPFsOnButtonClicked={setFetchCPFsOnButtonClicked} votacaoAberta={votacaoAberta} />} />
+          <Route path='/Votar' element={<Votar idUser={idUser} cpfs={cpfs} fetchCPFs={fetchCPFs} stsVotacao={stsVotacao} votacaoAberta={votacaoAberta} />} />
           <Route path='/Resultados' element={<Resultados />} />
           <Route path='/Admin' element={<Admin />} />
         </Routes>

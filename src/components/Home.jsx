@@ -15,19 +15,42 @@ const style ={
   down: `absolute bottom-4 left-1/2 transform -translate-x-1/2`
 }
 
-const Home = ({ readData, setFetchCPFsOnButtonClicked  }) => {
+const Home = ({ readData, setFetchCPFsOnButtonClicked, votacaoAberta  }) => {
   const [input, setInput] = useState('')
   const [isButtonDisable, setIsButtonDisable] = useState(false)
 
   const navigate = useNavigate()
 
+  const handleNotVotar = async (page) => {
+    setFetchCPFsOnButtonClicked(true);
+    toast.info('Buscando...', { closeButton: false })
+    const sitacaoCpf = await readData(input)
+    if (sitacaoCpf.encontrado){
+      toast.success('CPF Valido', { closeButton: false, onClose: () => { navigate(`/${page}`) } })
+    }else{
+      toast.error('CPF não válido', { closeButton: false })
+    }
+  }
+
   const handleSubmit = async (page) => {
     setFetchCPFsOnButtonClicked(true);
     toast.info('Buscando...', { closeButton: false })
-    const cpfEncontrado = await readData(input)
-    cpfEncontrado
-    ? toast.success('CPF Valido', { closeButton: false , onClose: () => { navigate(`/${page}`) }})
-    : toast.error('CPF não válido', { closeButton: false });
+    const votacaoLiberada= await votacaoAberta
+    if (votacaoLiberada){
+      const sitacaoCpf = await readData(input)
+      if (sitacaoCpf.encontrado){
+         toast.success('CPF Valido', { closeButton: false })
+         if(!sitacaoCpf.votado){
+          toast.success('CPF Valido para Voto', { closeButton: false, onClose: () => { navigate(`/${page}`) } })
+         }else{
+          toast.error('CPF ja Votou', { closeButton: false })
+         }
+      }else{
+          toast.error('CPF não válido', { closeButton: false })
+        }
+    }else{
+      toast.error('Votacao Fechada', { closeButton: false })
+    }
   }
   
   const checkCpf = (e) => {
@@ -53,14 +76,14 @@ const Home = ({ readData, setFetchCPFsOnButtonClicked  }) => {
           disabled={!isButtonDisable}
           onClick={(e) => {
             e.preventDefault()
-            handleSubmit('resultados')
+            handleNotVotar('resultados')
             }}><GiPodiumWinner size={30}/>Ver Resultados</button>
         <button 
           className={ `${style.button}  ${style.down} ${isButtonDisable ?  `bg-gradient-to-r from-cyan-600 via-cyan-700 to-cyan-800` : `opacity-50 cursor-not-allowed`}` }
           disabled={!isButtonDisable}
           onClick={(e) => {
             e.preventDefault()
-            handleSubmit('admin')
+            handleNotVotar('admin')
             }}><RiAdminFill size={30}/>Painel Administrador</button>
       </form>
     </div>
