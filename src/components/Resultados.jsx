@@ -6,6 +6,9 @@ import {db} from '../firebase'
 import { ToastContainer, toast } from 'react-toastify';
 
 const style = {
+  cb_bg:`bg-gray-100 max-w-[400px] mx-auto p-4 rounded-md shadow-md m-4`,
+  cb_label: `block text-gray-700 text-lg font-semibold mb-2`,
+  cb_select: `p-2 border rounded-md w-full`,
   container: `bg-slate-100 max-w-[700px] w-full m-auto rounded-md shadow-xl p-4 mb-4`,
   title: `text-2xl font-bold mb-4 text-center`,
   defFuncMes: `text-lg font-semibold mb-2`,
@@ -17,6 +20,8 @@ const Resultados = () => {
   const [cpfs, setCpfs] = useState([])
   const [questoes, setQuestoes] = useState([])
   const [votos, setVotos] = useState([])
+  const [valoresUnicos, setValoresUnicos] = useState([])//para o numVoto, para saber de qual votacao estamos tratando
+  const [valorSelecionado, setValorSelecionado] = useState(0)//vota ser analisada
 
   useEffect(()=> {
 //pega as questoes os ids das questoes
@@ -66,20 +71,31 @@ const getQuestoes = async () => {
     .catch((error) => {
       toast.error(`erro: ${error}`, { closeButton: false })
     })
-    
+
   }, [])
-  
-  //console.log(cpfs)
-  //console.log(questoes)
-  //console.log(votos)
+
+  useEffect(() => {
+    // Extrair valores únicos de numVotacao
+    const valores = [...new Set(votos.map(voto => voto.numVotacao))]//new Set, pois elimina valores duplicados pelo js
+    setValoresUnicos(valores)
+  }, [votos])
+
+  const handleSelecaoChange = (event) => {
+    const valorSelecionado = parseInt(event.target.value)
+    setValorSelecionado(valorSelecionado)
+  }
+
+
 
   function calcularResultadoTotalVotacao() {
     const resultados = [];
-  
+
     votos.forEach((v) => {
-      v.idCpfVotado.forEach((vIdCVotado) => {
-        resultados.push(vIdCVotado)
-      })
+      if (v.numVotacao === valorSelecionado){
+        v.idCpfVotado.forEach((vIdCVotado) => {
+          resultados.push(vIdCVotado)
+        })
+      }
     })
     return resultados;
   }
@@ -87,36 +103,87 @@ const getQuestoes = async () => {
   function calcularResultadoPQuestaoVotacao() {
     const votosPorQuestao = {}
     for (const voto of votos) {
-      const { idQuestao, idCpfVotado } = voto
-      
-      for (let i = 0; i < idQuestao.length; i++) {
-        const questaoId = idQuestao[i]
-        const votado = idCpfVotado[i]
+      if (voto.numVotacao === valorSelecionado){
+        const { idQuestao, idCpfVotado } = voto
         
-        if (!votosPorQuestao[questaoId]) {
-          votosPorQuestao[questaoId] = []
+        for (let i = 0; i < idQuestao.length; i++) {
+          const questaoId = idQuestao[i]
+          const votado = idCpfVotado[i]
+          
+          if (!votosPorQuestao[questaoId]) {
+            votosPorQuestao[questaoId] = []
+          }
+          
+          votosPorQuestao[questaoId].push(votado)
         }
-        
-        votosPorQuestao[questaoId].push(votado)
       }
     }
     return votosPorQuestao
   }
 
+  const votosTotais = calcularResultadoTotalVotacao()
   
+  const contagemVotos = {}
+  votosTotais.forEach((id) =>{
+    if (contagemVotos[id]){
+      contagemVotos[id]++
+    }else{
+      contagemVotos[id] = 1
+    }
+  }) 
+
   const votosPQuestao = calcularResultadoPQuestaoVotacao()
-  
-  const questaoId = "id1"
-  if (votosPQuestao.hasOwnProperty(questaoId)) {
-    const votosDaQuestao = votosPQuestao[questaoId]
-    console.log(`Votos para a questão ${questaoId}:`, votosDaQuestao)
-  } else {
-    console.log(`A questão ${questaoId} não possui votos.`)
+
+  const resultadosPorQuestao = {}
+  for (const questaoIndividual in votosPQuestao){//"questaoIndividual" será uma string representando o nome da questão (por exemplo, "questao1" ou "questao2").
+    const votosDaQuestao = votosPQuestao[questaoIndividual] //"votosDaQuestao" agora é um array contendo os idCPFs que votaram nessa questão.
+    const votosPorId = {}
+    for (const votoId of votosDaQuestao){ //"votoId" será uma string representando um id específico do funcionario (por exemplo, "cpf2" ou "cpf1").
+      if (votosPorId[votoId]){
+        votosPorId[votoId]++ // Incrementa a contagem de votos do idCPF
+      }else{
+        votosPorId[votoId] = 1 // Inicia a contagem de votos do idCPF
+      }
+    }
+    // Armazena os resultados da questão no objeto principal
+    resultadosPorQuestao[questaoIndividual] = votosPorId
   }
+
+  //console.log(contagemVotos)
+  console.log(resultadosPorQuestao)
+
+  const funcionarioMes = () => {
+    let vencedor = null
+    let maiorNumeroDeVotos = -1
+
+    for (const votoId in contagemVotos){
+      if (contagemVotos.hasOwnProperty(votoId)){ //verifica se a variável votos tem uma propriedade com o nome especificado 
+        const votosCandidato = contagemVotos[votoId]
+
+        if (votosCandidato > maiorNumeroDeVotos){
+          maiorNumeroDeVotos = votosCandidato
+          vencedor = votoId
+        }
+      }
+    }
+    return [vencedor, maiorNumeroDeVotos]//retorna o vencedor e seu numero de votos
+  }
+
+  const funcionarioMesArr = funcionarioMes()
   
 
   return (
     <div>
+      <div className={style.cb_bg}>
+        <label className={style.cb_label}>Selecione a Votação:</label>
+          <select className={style.cb_select} onChange={handleSelecaoChange} value={valorSelecionado}>
+            {valoresUnicos.map((valor, index) => (
+              <option key={index} value={valor}>
+                {valor}
+              </option>
+            ))}
+          </select>
+      </div>
       <div className={style.container}>
       <ToastContainer position="top-center" autoClose={1000} hideProgressBar={false} />
         <p className={style.title}>Resultados das Votações de Funcionário do Mês</p>
