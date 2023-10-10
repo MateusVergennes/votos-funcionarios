@@ -13,6 +13,7 @@ const style ={
   questao:`text-xl font-bold mb-2`,
   option: `mb-2`,
   buscaIndice: `text-center text-red-500 font-semibold text-lg mt-4`,
+  boasVindas: `text-xl font-bold text-black-500`
 }
 
 let indiceOculto = -1
@@ -124,38 +125,43 @@ const Votar = ({idUser, cpfs, fetchCPFs, stsVotacao, votacaoAberta}) => {
   }
 
   return (
-    <div className={style.container}>
-      <ToastContainer position="top-center" autoClose={1000} hideProgressBar={false} />
-      <form className={style.form}>
-      {indiceOculto > -1 && votacaoLiberada && !consultaCpfVotado ? (
-        indexQuestaoAtual < numeroDeQuestoes ? (
-          <div>
-            <p className={style.questao}>{questoes.length > 0 && questoes[indexQuestaoAtual] && questoes[indexQuestaoAtual].questao}</p>
-            {funcionarios.map((funcionario, index) => (
-              index !== indiceOculto && (
-              <div key={index} className={style.option}>
-                <input
-                  type="radio"
-                  name="opcao"
-                  value={index}
-                  onChange={() => handleOptionSelect(index)}
-                />
-                <label>{funcionario}</label>
-              </div>
-              )
-            ))}
-            <button type='button' className={style.botao} onClick={handleNextQuestion}> Próxima </button>
-          </div>
-        ) : ( 
-          <>
-            <p className={style.question}>Formulário concluído!</p>
-            <button type="button" className={style.botao} onClick={handleSendFormToBd}>Concluir</button>
-          </>
-        )
-        ) : (
-          <p className={style.buscaIndice}>...Buscando Opções de Voto ou Votacao Fechada ou Você já Votou...</p>
-        )}
-      </form>
+    <div>
+      {indiceOculto >-1 && (
+        <p className={style.boasVindas}>Ola {funcionarios[indiceOculto]}!</p>
+      )}
+      <div className={style.container}>
+        <ToastContainer position="top-center" autoClose={1000} hideProgressBar={false} />
+        <form className={style.form}>
+        {indiceOculto > -1 && votacaoLiberada && !consultaCpfVotado ? (
+          indexQuestaoAtual < numeroDeQuestoes ? (
+            <div>
+              <p className={style.questao}>{questoes.length > 0 && questoes[indexQuestaoAtual] && questoes[indexQuestaoAtual].questao}</p>
+              {funcionarios.map((funcionario, index) => (
+                index !== indiceOculto && (  
+                <div key={index} className={style.option}>
+                  <input
+                    type="radio"
+                    name="opcao"
+                    value={index}
+                    onChange={() => handleOptionSelect(index)}
+                  />
+                  <label>{funcionario}</label>
+                </div>
+                )
+              ))}
+              <button type='button' className={style.botao} onClick={handleNextQuestion}> Próxima </button>
+            </div>
+          ) : ( 
+            <>
+              <p className={style.question}>Formulário concluído!</p>
+              <button type="button" className={style.botao} onClick={handleSendFormToBd}>Concluir</button>
+            </>
+          )
+          ) : (
+            <p className={style.buscaIndice}>...Buscando Opções de Voto ou Votacao Fechada ou Você já Votou...</p>
+          )}
+        </form>
+      </div>
     </div>
   )
 }
