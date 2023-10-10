@@ -21,7 +21,8 @@ const Resultados = () => {
   const [questoes, setQuestoes] = useState([])
   const [votos, setVotos] = useState([])
   const [valoresUnicos, setValoresUnicos] = useState([])//para o numVoto, para saber de qual votacao estamos tratando
-  const [valorSelecionado, setValorSelecionado] = useState(0)//vota ser analisada
+  const [valorSelecionado, setValorSelecionado] = useState(0)//voto ser analisada
+  const [nomeVencedor, setNomeVencedor] = useState('')
 
   useEffect(()=> {
 //pega as questoes os ids das questoes
@@ -147,10 +148,7 @@ const getQuestoes = async () => {
     }
     // Armazena os resultados da questão no objeto principal
     resultadosPorQuestao[questaoIndividual] = votosPorId
-  }
-
-  //console.log(contagemVotos)
-  console.log(resultadosPorQuestao)
+  }  
 
   const funcionarioMes = () => {
     let vencedor = null
@@ -170,6 +168,49 @@ const getQuestoes = async () => {
   }
 
   const funcionarioMesArr = funcionarioMes()
+
+  useEffect(() => {
+    function takeNomeVencedor() {
+      let nomeVencedorT
+      cpfs.forEach((cpf) => {
+          if (cpf.id === funcionarioMesArr[0]){
+            nomeVencedorT = cpf.nome
+          }
+        })
+      return nomeVencedorT
+    }
+  
+    setNomeVencedor(takeNomeVencedor())
+
+  }, [funcionarioMesArr])
+
+  function handleFuncionariosQuestao (questaoAtual) {
+    let questaoAtualId = ''
+    Object.keys(questaoAtual).forEach(() => {
+      questaoAtualId = (questaoAtual['id'])
+    })
+
+    let resultadoQuestaoAtualId = ''
+    Object.keys(resultadosPorQuestao).forEach((rpqId) => {
+      if (rpqId === questaoAtualId) {
+        resultadoQuestaoAtualId = (resultadosPorQuestao[rpqId])//assim tenho um objeto com ids e seus votos respectivos
+        cpfs.forEach((cpf) => {//trocar os ids por nomes dos ids respectivos
+          if (resultadoQuestaoAtualId.hasOwnProperty(cpf.id)){//se o id do objeto houver em cpf.id, no proximo passo copiamos o valor da chave antiga, no novo nome e apagamos posteriormente a antiga
+            resultadoQuestaoAtualId[cpf.nome] = resultadoQuestaoAtualId[cpf.id]
+            delete resultadoQuestaoAtualId[cpf.id]
+          }
+        })
+      }
+    })
+     return (
+      <div>
+        {Object.keys(resultadoQuestaoAtualId).map((chave) => (
+          <p key={chave}>{chave}: {resultadoQuestaoAtualId[chave]}</p>
+        ))}
+      </div>
+    )
+  }
+
   
 
   return (
@@ -188,19 +229,15 @@ const getQuestoes = async () => {
       <ToastContainer position="top-center" autoClose={1000} hideProgressBar={false} />
         <p className={style.title}>Resultados das Votações de Funcionário do Mês</p>
           <h2 className={style.defFuncMes}>O Funcionário do Mês é: </h2>
-            <h1 className={style.funcMes}>Kleber</h1>
+            <h1 className={style.funcMes}>{nomeVencedor} com {funcionarioMesArr[1]} Votos, Parabéns!!!</h1>
       </div>
       <div className={style.container}>
         <p className={style.title}>Resultados Gerais das Votações de Funcionário do Mês</p>
           {questoes.map((questao, index) => (
             <div key={index} >
               <h1 className={style.designquestao}>{questao.questao}</h1>
-              {cpfs.map((cpf, index) => (
-                <div key={index} >
-                  <p className={style.barraProgresso}></p>
-                  <h2 className={style.funcMes}>{cpf.nome}</h2>
-                </div>
-              ))}
+              {handleFuncionariosQuestao(questao)}
+              
             </div>
           ))}
       </div>
