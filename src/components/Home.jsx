@@ -1,7 +1,10 @@
-import React, {useEffect, useState} from 'react'
+import React, {useState} from 'react'
 import {useNavigate} from 'react-router-dom'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+
+import {query, collection, where, getDocs} from 'firebase/firestore'
+import {db} from '../firebase'
 
 import {FaVoteYea} from 'react-icons/fa'
 import {GiPodiumWinner} from 'react-icons/gi'
@@ -21,12 +24,42 @@ const Home = ({ readData, setFetchCPFsOnButtonClicked, votacaoAberta  }) => {
 
   const navigate = useNavigate()
 
-  const handleNotVotar = async (page) => {
+  const handleResultados = async (page) => {
     setFetchCPFsOnButtonClicked(true);
     toast.info('Buscando...', { closeButton: false })
     const sitacaoCpf = await readData(input)
     if (sitacaoCpf.encontrado){
       toast.success('CPF Valido', { closeButton: false, onClose: () => { navigate(`/${page}`) } })
+    }else{
+      toast.error('CPF não válido', { closeButton: false })
+    }
+  }
+
+  const checkAdmin = async () => {   
+    const usuariosRef  = (collection(db, 'admin'))
+    const q = query(usuariosRef, where('cpfsAdmins', 'array-contains', input));
+    const querySnapshot = await getDocs(q);
+  
+    if (!querySnapshot.empty) {
+      return true
+    }else{
+      return false
+    }
+  }
+
+
+  const handleAdmin = async (page) => {
+    setFetchCPFsOnButtonClicked(true);
+    toast.info('Buscando...', { closeButton: false })
+    const valueCheckAdmin = await checkAdmin()
+    const sitacaoCpf = await readData(input)
+    if (sitacaoCpf.encontrado){
+      toast.success('CPF Valido', { closeButton: false})
+      if (valueCheckAdmin){
+        toast.success('CPF de Admin OK', { closeButton: false, onClose: () => { navigate(`/${page}`) } })
+      }else{
+        toast.error('CPF não é de Admin', { closeButton: false })
+      }
     }else{
       toast.error('CPF não válido', { closeButton: false })
     }
@@ -76,14 +109,14 @@ const Home = ({ readData, setFetchCPFsOnButtonClicked, votacaoAberta  }) => {
           disabled={!isButtonDisable}
           onClick={(e) => {
             e.preventDefault()
-            handleNotVotar('resultados')
+            handleResultados('resultados')
             }}><GiPodiumWinner size={30}/>Ver Resultados</button>
         <button 
           className={ `${style.button}  ${style.down} ${isButtonDisable ?  `bg-gradient-to-r from-cyan-600 via-cyan-700 to-cyan-800` : `opacity-50 cursor-not-allowed`}` }
           disabled={!isButtonDisable}
           onClick={(e) => {
             e.preventDefault()
-            handleNotVotar('admin')
+            handleAdmin('admin')
             }}><RiAdminFill size={30}/>Painel Administrador</button>
       </form>
     </div>
