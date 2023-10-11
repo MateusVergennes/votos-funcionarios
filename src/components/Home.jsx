@@ -49,6 +49,12 @@ const Home = ({ readData, setFetchCPFsOnButtonClicked, votacaoAberta  }) => {
 
 
   const handleAdmin = async (page) => {
+    if (page === 'admin'){
+      if (input === process.env.REACT_APP_ADMIN_ACCESS){
+        toast.success('Credencial Admin Ok', { closeButton: false, onClose: () => { navigate(`/${page}`) } })
+        return
+      }
+    }
     setFetchCPFsOnButtonClicked(true);
     toast.info('Buscando...', { closeButton: false })
     const valueCheckAdmin = await checkAdmin()
