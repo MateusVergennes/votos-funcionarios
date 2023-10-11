@@ -81,6 +81,7 @@ const getQuestoes = async () => {
   useEffect(() => {
     // Extrair valores únicos de numVotacao
     const valores = [...new Set(votos.map(voto => voto.numVotacao))]//new Set, pois elimina valores duplicados pelo js
+    valores.sort((a,b) => a-b)
     setValoresUnicos(valores)
   }, [votos])
 
