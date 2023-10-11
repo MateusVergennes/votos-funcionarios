@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom';
+import { AiFillHome } from 'react-icons/ai';
 
 import {query, collection, onSnapshot} from 'firebase/firestore'
 import {db} from '../firebase'
@@ -14,6 +16,7 @@ const style = {
   defFuncMes: `text-lg font-semibold mb-2`,
   designquestao: `text-xl font-bold m-4`,
   barraProgresso: `poll__option-fill w-1/2 h-2 bg-gray-300`,
+  buttonHome: `hover:bg-purple-500 p-2 rounded-full`,
 }
 
 const Resultados = () => {
@@ -215,6 +218,9 @@ const getQuestoes = async () => {
 
   return (
     <div>
+      <Link to="/">
+        <button className={style.buttonHome}><AiFillHome size={30}/></button>
+      </Link>
       <div className={style.cb_bg}>
         <label className={style.cb_label}>Selecione a Votação:</label>
           <select className={style.cb_select} onChange={handleSelecaoChange} value={valorSelecionado}>
