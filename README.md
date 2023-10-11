@@ -4,6 +4,11 @@
 
 Você pode acessar a aplicação [aqui](https://votos-funcionarios-yyzx.vercel.app/).
 
+##Exemplo de Uso
+
+![video_2023-10-11_10-35-02](https://github.com/MateusVergennes/votos-funcionarios/assets/43749785/ab4f133d-be57-4b89-8937-808943977265)
+
+
 ## Funcionalidades
 
 - ✅ Acesso com CPF
