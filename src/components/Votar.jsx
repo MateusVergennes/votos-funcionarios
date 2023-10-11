@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import {useNavigate} from 'react-router-dom'
+import { Link } from 'react-router-dom';
+import { AiFillHome } from 'react-icons/ai';
 
 import { ToastContainer, toast } from 'react-toastify';
 
@@ -11,9 +13,11 @@ const style ={
   form: `flex flex-col h-full justify-between`,
   botao: `bg-blue-500 text-white font-semibold py-2 rounded-md mt-4`,
   questao:`text-xl font-bold mb-2`,
-  option: `mb-2`,
+  option: `flex bg-slate-200 p-4 my-2 capitalize`,
+  optionChoose: `flex bg-purple-500 p-4 my-2 capitalize`,
   buscaIndice: `text-center text-red-500 font-semibold text-lg mt-4`,
-  boasVindas: `text-xl font-bold text-black-500`
+  boasVindas: `text-xl font-bold text-black-500`,
+  buttonHome: `hover:bg-purple-500 p-2 rounded-full`,
 }
 
 let indiceOculto = -1
@@ -21,6 +25,7 @@ let indiceOculto = -1
 const Votar = ({idUser, cpfs, fetchCPFs, stsVotacao, votacaoAberta}) => {
   const [indexQuestaoAtual, setIndexQuestaoAtual] = useState(0)
   const [opcaoSelecionada, setOpcaoSelecionada] = useState([])
+  const [indexOpcaoSelecionada, setIndexOpcaoSelecionada] = useState(-1)
   const [funcionarios, setFuncionarios] = useState([])
   const [idFuncionarios, setIdFuncionarios] = useState([])
   const [questoes, setQuestoes] = useState([])
@@ -30,14 +35,16 @@ const Votar = ({idUser, cpfs, fetchCPFs, stsVotacao, votacaoAberta}) => {
   const navigate = useNavigate()
 
   const handleOptionSelect = (selectedOption) => {
-    const novasOpcoesSelecionadas = [...opcaoSelecionada];
-    novasOpcoesSelecionadas[indexQuestaoAtual] = idFuncionarios[selectedOption];
-    setOpcaoSelecionada(novasOpcoesSelecionadas);
+    const novasOpcoesSelecionadas = [...opcaoSelecionada]
+    novasOpcoesSelecionadas[indexQuestaoAtual] = idFuncionarios[selectedOption]
+    setOpcaoSelecionada(novasOpcoesSelecionadas)
+    setIndexOpcaoSelecionada(selectedOption)
   }
 
   const handleNextQuestion = () => {
     if (opcaoSelecionada[indexQuestaoAtual] !== undefined){
       setIndexQuestaoAtual(indexQuestaoAtual + 1)
+      setIndexOpcaoSelecionada(-1)
 
       const radioButtons = document.querySelectorAll('input[type="radio"]');
       radioButtons.forEach((radio) => {
@@ -126,6 +133,9 @@ const Votar = ({idUser, cpfs, fetchCPFs, stsVotacao, votacaoAberta}) => {
 
   return (
     <div>
+      <Link to="/">
+        <button className={style.buttonHome}><AiFillHome size={30}/></button>
+      </Link>
       {indiceOculto >-1 && (
         <p className={style.boasVindas}>Ola {funcionarios[indiceOculto]}!</p>
       )}
@@ -138,13 +148,8 @@ const Votar = ({idUser, cpfs, fetchCPFs, stsVotacao, votacaoAberta}) => {
               <p className={style.questao}>{questoes.length > 0 && questoes[indexQuestaoAtual] && questoes[indexQuestaoAtual].questao}</p>
               {funcionarios.map((funcionario, index) => (
                 index !== indiceOculto && (  
-                <div key={index} className={style.option}>
-                  <input
-                    type="radio"
-                    name="opcao"
-                    value={index}
-                    onChange={() => handleOptionSelect(index)}
-                  />
+                <div key={index} className={indexOpcaoSelecionada === index ? style.optionChoose : style.option} onClick={() => handleOptionSelect(index)} >
+                  
                   <label>{funcionario}</label>
                 </div>
                 )
