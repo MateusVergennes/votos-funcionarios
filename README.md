@@ -4,8 +4,6 @@
 
 Você pode acessar a aplicação [aqui](https://votos-funcionarios-yyzx.vercel.app/).
 
-[Descrição curta do projeto]
-
 ## Funcionalidades
 
 - ✅ Acesso com CPF
