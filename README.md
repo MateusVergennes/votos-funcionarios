@@ -2,7 +2,7 @@
 
 ## Acesso à Aplicação
 
-Você pode acessar a aplicação [aqui](https://votos-funcionarios-yyzx.vercel.app/).
+Você pode acessar a aplicação [aqui](https://votos-funcionarios-s.vercel.app/).
 
 ##Exemplo de Uso
 
