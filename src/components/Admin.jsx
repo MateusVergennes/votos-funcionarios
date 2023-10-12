@@ -17,7 +17,7 @@ const style = {
   form: `flex justify-between`,
   input: `border p-2 w-full text-xl`,
   button: `border font-bold p-4 ml-2 bg-purple-500 text-slate-100 hover:bg-purple-600`,
-  contagem: `ml-2`,
+  contagem: `ml-2 border`,
   title: `text-center text-xl p-2`,
   toggleContainer: `flex items-center justify-center`,
   nomes: `flex justify-between bg-slate-200 p-4 my-2 capitalize`,
