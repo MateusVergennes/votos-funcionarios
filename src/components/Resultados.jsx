@@ -82,7 +82,9 @@ const getQuestoes = async () => {
     // Extrair valores únicos de numVotacao
     const valores = [...new Set(votos.map(voto => voto.numVotacao))]//new Set, pois elimina valores duplicados pelo js
     valores.sort((a,b) => a-b)
+    const valorMaisAlto = Math.max(...valores)
     setValoresUnicos(valores)
+    setValorSelecionado(valorMaisAlto)
   }, [votos])
 
   const handleSelecaoChange = (event) => {
@@ -127,7 +129,7 @@ const getQuestoes = async () => {
   }
 
   const votosTotais = calcularResultadoTotalVotacao()
-  
+
   const contagemVotos = {}
   votosTotais.forEach((id) =>{
     if (contagemVotos[id]){
@@ -236,17 +238,21 @@ const getQuestoes = async () => {
       <ToastContainer position="top-center" autoClose={1000} hideProgressBar={false} />
         <p className={style.title}>Resultados das Votações de Funcionário do Mês</p>
           <h2 className={style.defFuncMes}>O Funcionário do Mês é: </h2>
-            <h1 className={style.funcMes}>{nomeVencedor} com {funcionarioMesArr[1]} Votos, Parabéns!!!</h1>
+            {votosTotais.length >= ( cpfs.length*questoes.length) 
+            ? (<h1 className={style.funcMes}>{nomeVencedor} com {funcionarioMesArr[1]} Votos, Parabéns!!!</h1>)
+            : (<h1 className={style.funcMes}>Assim que todos os Funcionários Votarem, será possível ver os Resultados</h1>)}
       </div>
       <div className={style.container}>
         <p className={style.title}>Resultados Gerais das Votações de Funcionário do Mês</p>
-          {questoes.map((questao, index) => (
-            <div key={index} >
-              <h1 className={style.designquestao}>{questao.questao}</h1>
-              {handleFuncionariosQuestao(questao)}
-              
-            </div>
-          ))}
+        {votosTotais.length >= ( cpfs.length*questoes.length) 
+        ? (questoes.map((questao, index) => (
+          <div key={index} >
+            <h1 className={style.designquestao}>{questao.questao}</h1>
+            {handleFuncionariosQuestao(questao)}
+            
+          </div>
+        )))
+        : (<h1 className={style.funcMes}>Assim que todos os Funcionários Votarem, será possível ver os Resultados</h1>)}
       </div>
     </div>
   )
