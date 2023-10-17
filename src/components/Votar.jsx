@@ -147,7 +147,7 @@ const Votar = ({idUser, cpfs, fetchCPFs, stsVotacao, votacaoAberta}) => {
             <div>
               <p className={style.questao}>{questoes.length > 0 && questoes[indexQuestaoAtual] && questoes[indexQuestaoAtual].questao}</p>
               {funcionarios.map((funcionario, index) => (
-                index !== indiceOculto && (  
+                (index !== indiceOculto && funcionario !== 'Juliana' && funcionario !== 'Anderson') && (  
                 <div key={index} className={indexOpcaoSelecionada === index ? style.optionChoose : style.option} onClick={() => handleOptionSelect(index)} >
                   
                   <label>{funcionario}</label>
